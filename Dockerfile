@@ -1,29 +1,25 @@
-FROM eclipse-temurin:17-jdk
-
-# Crear directorio para la aplicación
-RUN mkdir /app
+# Etapa de construcción
+FROM gradle:7.6.0-jdk17 AS build
 WORKDIR /app
 
-# Copiar el código fuente al contenedor
+# Copiar todo el código fuente al contenedor
 COPY . .
 
-# Copiar el wrapper de Gradle y dar permisos de ejecución
-COPY ./gradlew ./gradlew
-COPY ./gradle ./gradle
-RUN chmod +x ./gradlew
-
-# Instalar dependencias necesarias (opcional, pero en este caso ya viene con JDK)
-RUN apt-get update && apt-get install -y curl unzip
-
-# Compilar el proyecto con Gradle (omitimos los tests si es necesario)
+# Ejecutar Gradle para construir el JAR (omitir tests si es necesario)
 RUN ./gradlew build -x test
 
-# Mover el artefacto generado (ajusta la ruta si es necesario)
-RUN cp build/libs/*.jar app.jar
+# Etapa de ejecución
+FROM eclipse-temurin:17-jre-jammy
+WORKDIR /app
 
-# Definir el comando para ejecutar la aplicación
-CMD ["java", "-jar", "app.jar"]
+# Copiar el JAR construido desde la etapa anterior
+COPY --from=build /app/build/quarkus-app/quarkus-run.jar /app/app.jar
+COPY --from=build /app/build/quarkus-app/lib/ /app/lib/
+COPY --from=build /app/build/quarkus-app/app/ /app/app/
+COPY --from=build /app/build/quarkus-app/quarkus/ /app/quarkus/
 
+# Comando para ejecutar la aplicación Quarkus
+CMD ["java", "-jar", "/app/app.jar"]
 
 
 
