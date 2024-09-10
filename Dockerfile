@@ -1,28 +1,20 @@
-FROM eclipse-temurin:17.0.11_9-jdk-jammy AS build
-WORKDIR /app
-
-# Copiar los archivos necesarios para la construcción
-COPY gradle gradle
-COPY gradlew build.gradle.kts settings.gradle.kts ./
-COPY /src src
-
-# Dar permisos de ejecución a gradlew
-RUN chmod +x ./gradlew
-
-# Construir la aplicación
-RUN ./gradlew build -Dquarkus.package.type=uber-jar
-
-# Etapa de ejecución
 FROM eclipse-temurin:17.0.11_9-jre-jammy
+
+RUN mkdir /app
 WORKDIR /app
 
-# Copiar el jar generado desde la etapa de construcción
-COPY --from=build /app/build/quarkus-app/quarkus-run.jar ./app.jar
+# Copiar el código fuente al contenedor
+COPY . .
 
-# Exponer el puerto de la aplicación
-EXPOSE 8080
+# Instalar herramientas necesarias para compilar (si es necesario)
+RUN apt-get update && apt-get install -y maven
 
-# Comando para ejecutar la aplicación
+# Compilar el proyecto
+RUN ./mvnw package -DskipTests
+
+# Mover los archivos generados al lugar correcto
+RUN cp target/quarkus-app/* /app/
+
 CMD ["java", "-jar", "app.jar"]
 
 
