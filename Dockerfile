@@ -1,21 +1,29 @@
 FROM eclipse-temurin:17.0.11_9-jre-jammy
 
+# Crear directorio para la aplicación
 RUN mkdir /app
 WORKDIR /app
 
 # Copiar el código fuente al contenedor
 COPY . .
 
-# Instalar herramientas necesarias para compilar (si es necesario)
-RUN apt-get update && apt-get install -y maven
+# Copiar el wrapper de Gradle y dar permisos de ejecución
+COPY ./gradlew ./gradlew
+COPY ./gradle ./gradle
+RUN chmod +x ./gradlew
 
-# Compilar el proyecto
-RUN ./mvnw package -DskipTests
+# Instalar dependencias necesarias (opcional dependiendo de la base de la imagen, pero Gradle lo maneja internamente)
+RUN apt-get update && apt-get install -y curl unzip
 
-# Mover los archivos generados al lugar correcto
-RUN cp target/quarkus-app/* /app/
+# Compilar el proyecto con Gradle (omitimos los tests si es necesario)
+RUN ./gradlew build -x test
 
+# Mover el artefacto generado (ajusta la ruta si es necesario)
+RUN cp build/libs/*.jar app.jar
+
+# Definir el comando para ejecutar la aplicación
 CMD ["java", "-jar", "app.jar"]
+
 
 
 
