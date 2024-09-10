@@ -5,9 +5,15 @@ WORKDIR /app
 # Copiar todo el contenido del proyecto
 COPY . .
 
-# Dar permisos de ejecución al gradlew y construir la aplicación
-RUN chmod +x ./gradlew
-RUN ./gradlew build -Dquarkus.package.type=uber-jar
+# Verificar la existencia de gradlew y darle permisos de ejecución si existe
+RUN if [ -f gradlew ]; then chmod +x gradlew; fi
+
+# Intentar construir con gradlew si existe, de lo contrario usar gradle
+RUN if [ -f gradlew ]; then \
+        ./gradlew build -Dquarkus.package.type=uber-jar; \
+    else \
+        gradle build -Dquarkus.package.type=uber-jar; \
+    fi
 
 # Etapa de ejecución
 FROM eclipse-temurin:17.0.11_9-jre-jammy
