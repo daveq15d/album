@@ -4,7 +4,7 @@ WORKDIR /app
 # Copiar los archivos necesarios para la construcción
 COPY gradle gradle
 COPY gradlew build.gradle.kts settings.gradle.kts ./
-COPY src src
+COPY /src src
 
 # Dar permisos de ejecución a gradlew
 RUN chmod +x ./gradlew
