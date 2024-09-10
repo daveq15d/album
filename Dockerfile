@@ -1,5 +1,4 @@
-# Usar una imagen base con JDK completo
-FROM eclipse-temurin:17.0.11_9-jdk-jammy
+FROM openjdk:17-jdk-jammy
 
 # Crear directorio para la aplicación
 RUN mkdir /app
