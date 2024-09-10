@@ -1,12 +1,16 @@
+FROM gradle:7.6.0-jdk17 AS build
 
-FROM eclipse-temurin:17.0.11_9-jre-jammy
+COPY build.gradle settings.gradle /usr/src/app/
+COPY src /usr/src/app/src/
 
-RUN mkdir /app
+WORKDIR /usr/src/app
+
+RUN gradle build --no-daemon
+
+FROM eclipse-temurin:17-jre-alpine
+
 WORKDIR /app
 
-COPY build/quarkus-app/app ./app
-COPY build/quarkus-app/lib/ ./lib
-COPY build/quarkus-app/quarkus/ ./quarkus
-COPY build/quarkus-app/quarkus-run.jar app.jar
+COPY --from=build /usr/src/app/build/libs/tu-app.jar /app/app.jar
 
-CMD ["java","-jar","app.jar"]
+CMD ["java", "-jar", "app.jar"]
