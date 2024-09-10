@@ -1,14 +1,14 @@
 # Fase de construcción
 FROM gradle:7.6.0-jdk17 AS build
 
-# Copia el build.gradle y los archivos del proyecto
-COPY build.gradle settings.gradle /usr/src/app/
-COPY src /usr/src/app/src/
-
 # Establece el directorio de trabajo
 WORKDIR /usr/src/app
 
-# Compila el proyecto usando el plugin de Quarkus para Gradle
+# Clona el código fuente desde el repositorio (si es necesario)
+# Aquí asumo que el código ya está presente y no es necesario clonarlo, ya que estás usando un despliegue basado en GitHub
+
+# Ejecuta la compilación con Gradle
+# No necesitas copiar build.gradle ni settings.gradle si se generan dentro del contenedor
 RUN gradle build --no-daemon
 
 # Fase de ejecución
@@ -25,4 +25,5 @@ COPY --from=build /usr/src/app/build/quarkus-app/quarkus-run.jar /app/app.jar
 
 # Ejecuta la aplicación al iniciar el contenedor
 CMD ["java", "-jar", "app.jar"]
+
 
