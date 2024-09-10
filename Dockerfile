@@ -5,6 +5,9 @@ WORKDIR /app
 # Copiar todo el código fuente al contenedor
 COPY . .
 
+# Dar permisos de ejecución al wrapper de Gradle
+RUN chmod +x ./gradlew
+
 # Ejecutar Gradle para construir el JAR (omitir tests si es necesario)
 RUN ./gradlew build -x test
 
@@ -20,6 +23,7 @@ COPY --from=build /app/build/quarkus-app/quarkus/ /app/quarkus/
 
 # Comando para ejecutar la aplicación Quarkus
 CMD ["java", "-jar", "/app/app.jar"]
+
 
 
 
