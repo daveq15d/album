@@ -1,4 +1,5 @@
-FROM eclipse-temurin:17.0.11_9-jre-jammy
+# Usar una imagen base con JDK completo
+FROM eclipse-temurin:17.0.11_9-jdk-jammy
 
 # Crear directorio para la aplicación
 RUN mkdir /app
@@ -12,7 +13,7 @@ COPY ./gradlew ./gradlew
 COPY ./gradle ./gradle
 RUN chmod +x ./gradlew
 
-# Instalar dependencias necesarias (opcional dependiendo de la base de la imagen, pero Gradle lo maneja internamente)
+# Instalar dependencias necesarias (opcional, pero en este caso ya viene con JDK)
 RUN apt-get update && apt-get install -y curl unzip
 
 # Compilar el proyecto con Gradle (omitimos los tests si es necesario)
@@ -23,6 +24,7 @@ RUN cp build/libs/*.jar app.jar
 
 # Definir el comando para ejecutar la aplicación
 CMD ["java", "-jar", "app.jar"]
+
 
 
 
