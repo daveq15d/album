@@ -1,4 +1,4 @@
-FROM openjdk:17-jdk-jammy
+FROM eclipse-temurin:17-jdk
 
 # Crear directorio para la aplicación
 RUN mkdir /app
