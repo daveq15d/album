@@ -2,6 +2,15 @@
 FROM eclipse-temurin:17.0.11_9-jdk-jammy AS build
 WORKDIR /app
 
+# Instalar Gradle
+ENV GRADLE_VERSION=7.6.1
+RUN apt-get update && apt-get install -y wget unzip \
+    && wget https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip -P /tmp \
+    && unzip -d /opt/gradle /tmp/gradle-${GRADLE_VERSION}-bin.zip \
+    && ln -s /opt/gradle/gradle-${GRADLE_VERSION} /opt/gradle/latest \
+    && rm /tmp/gradle-${GRADLE_VERSION}-bin.zip
+ENV PATH="/opt/gradle/latest/bin:${PATH}"
+
 # Copiar todo el contenido del proyecto
 COPY . .
 
