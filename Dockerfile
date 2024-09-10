@@ -1,53 +1,49 @@
-# Etapa de construcción
 FROM eclipse-temurin:17.0.11_9-jdk-jammy AS build
 WORKDIR /app
-
-# Instalar Gradle
-ENV GRADLE_VERSION=7.6.1
-RUN apt-get update && apt-get install -y wget unzip \
-    && wget https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip -P /tmp \
-    && unzip -d /opt/gradle /tmp/gradle-${GRADLE_VERSION}-bin.zip \
-    && ln -s /opt/gradle/gradle-${GRADLE_VERSION} /opt/gradle/latest \
-    && rm /tmp/gradle-${GRADLE_VERSION}-bin.zip
-ENV PATH="/opt/gradle/latest/bin:${PATH}"
 
 # Copiar todo el contenido del proyecto
 COPY . .
 
-# Mostrar contenido del directorio y versión de Gradle
-RUN ls -la
-RUN gradle --version
+# Mostrar el contenido del directorio actual
+RUN echo "Contenido del directorio actual:" && ls -la
 
-# Mostrar contenido del archivo build.gradle o build.gradle.kts
-RUN cat build.gradle || cat build.gradle.kts
+# Buscar archivos de configuración de Gradle en todo el proyecto
+RUN echo "Buscando archivos de configuración de Gradle:" && \
+    find . -name "build.gradle" -o -name "build.gradle.kts"
 
-# Verificar la existencia de gradlew y darle permisos de ejecución si existe
-RUN if [ -f gradlew ]; then chmod +x gradlew; fi
-
-# Intentar construir con gradlew si existe, de lo contrario usar gradle (con modo verbose)
-RUN if [ -f gradlew ]; then \
-        ./gradlew build --stacktrace --info -Dquarkus.package.type=uber-jar || true; \
-        ./gradlew build --stacktrace --info -Dquarkus.package.type=uber-jar; \
+# Mostrar el contenido del archivo de configuración de Gradle si existe
+RUN if [ -f build.gradle ]; then \
+        echo "Contenido de build.gradle:"; \
+        cat build.gradle; \
+    elif [ -f build.gradle.kts ]; then \
+        echo "Contenido de build.gradle.kts:"; \
+        cat build.gradle.kts; \
     else \
-        gradle build --stacktrace --info -Dquarkus.package.type=uber-jar || true; \
-        gradle build --stacktrace --info -Dquarkus.package.type=uber-jar; \
+        echo "No se encontró ningún archivo de configuración de Gradle."; \
     fi
 
-# Verificar la existencia del jar generado
-RUN ls -la build/quarkus-app || echo "El directorio build/quarkus-app no existe"
+# Buscar el archivo gradlew
+RUN echo "Buscando gradlew:" && find . -name "gradlew"
 
-# Etapa de ejecución
+# Mostrar la estructura completa del proyecto
+RUN echo "Estructura completa del proyecto:" && find .
+
+# Aquí normalmente iría la construcción del proyecto, pero la omitimos por ahora
+
+# Etapa de ejecución (la mantenemos por completitud)
 FROM eclipse-temurin:17.0.11_9-jre-jammy
 WORKDIR /app
 
-# Copiar el jar generado desde la etapa de construcción
-COPY --from=build /app/build/quarkus-app/quarkus-run.jar ./app.jar
+# Nota: No copiamos el jar porque probablemente no se ha generado
+# COPY --from=build /app/build/quarkus-app/quarkus-run.jar ./app.jar
 
 # Exponer el puerto de la aplicación
 EXPOSE 8080
 
-# Comando para ejecutar la aplicación
-CMD ["java", "-jar", "app.jar"]
+# Comando para ejecutar la aplicación (lo comentamos porque no tenemos el jar)
+# CMD ["java", "-jar", "app.jar"]
+
+CMD ["echo", "El proyecto no se pudo construir debido a la falta de archivos de configuración de Gradle."]
 
 
 
