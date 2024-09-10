@@ -1,29 +1,27 @@
-# Fase de construcción
-FROM gradle:7.6.0-jdk17 AS build
-
-# Establece el directorio de trabajo
-WORKDIR /usr/src/app
-
-# Clona el código fuente desde el repositorio (si es necesario)
-# Aquí asumo que el código ya está presente y no es necesario clonarlo, ya que estás usando un despliegue basado en GitHub
-
-# Ejecuta la compilación con Gradle
-# No necesitas copiar build.gradle ni settings.gradle si se generan dentro del contenedor
-RUN gradle build --no-daemon
-
-# Fase de ejecución
-FROM eclipse-temurin:17-jre-alpine
-
-# Establece el directorio de trabajo para la aplicación
+# Etapa de construcción
+FROM eclipse-temurin:17.0.11_9-jdk-jammy AS build
 WORKDIR /app
 
-# Copia los archivos generados en la fase de construcción
-COPY --from=build /usr/src/app/build/quarkus-app/lib/ /app/lib/
-COPY --from=build /usr/src/app/build/quarkus-app/app/ /app/app/
-COPY --from=build /usr/src/app/build/quarkus-app/quarkus/ /app/quarkus/
-COPY --from=build /usr/src/app/build/quarkus-app/quarkus-run.jar /app/app.jar
+# Copiar los archivos necesarios para la construcción
+COPY gradle gradle
+COPY gradlew build.gradle.kts settings.gradle.kts ./
+COPY src src
 
-# Ejecuta la aplicación al iniciar el contenedor
+# Dar permisos de ejecución al gradlew y construir la aplicación
+RUN chmod +x ./gradlew
+RUN ./gradlew build -Dquarkus.package.type=uber-jar
+
+# Etapa de ejecución
+FROM eclipse-temurin:17.0.11_9-jre-jammy
+WORKDIR /app
+
+# Copiar el jar generado desde la etapa de construcción
+COPY --from=build /app/build/quarkus-app/quarkus-run.jar ./app.jar
+
+# Exponer el puerto de la aplicación
+EXPOSE 8080
+
+# Comando para ejecutar la aplicación
 CMD ["java", "-jar", "app.jar"]
 
 
