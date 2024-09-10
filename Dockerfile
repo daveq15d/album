@@ -14,15 +14,27 @@ ENV PATH="/opt/gradle/latest/bin:${PATH}"
 # Copiar todo el contenido del proyecto
 COPY . .
 
+# Mostrar contenido del directorio y versión de Gradle
+RUN ls -la
+RUN gradle --version
+
+# Mostrar contenido del archivo build.gradle o build.gradle.kts
+RUN cat build.gradle || cat build.gradle.kts
+
 # Verificar la existencia de gradlew y darle permisos de ejecución si existe
 RUN if [ -f gradlew ]; then chmod +x gradlew; fi
 
-# Intentar construir con gradlew si existe, de lo contrario usar gradle
+# Intentar construir con gradlew si existe, de lo contrario usar gradle (con modo verbose)
 RUN if [ -f gradlew ]; then \
-        ./gradlew build -Dquarkus.package.type=uber-jar; \
+        ./gradlew build --stacktrace --info -Dquarkus.package.type=uber-jar || true; \
+        ./gradlew build --stacktrace --info -Dquarkus.package.type=uber-jar; \
     else \
-        gradle build -Dquarkus.package.type=uber-jar; \
+        gradle build --stacktrace --info -Dquarkus.package.type=uber-jar || true; \
+        gradle build --stacktrace --info -Dquarkus.package.type=uber-jar; \
     fi
+
+# Verificar la existencia del jar generado
+RUN ls -la build/quarkus-app || echo "El directorio build/quarkus-app no existe"
 
 # Etapa de ejecución
 FROM eclipse-temurin:17.0.11_9-jre-jammy
