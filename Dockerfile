@@ -2,10 +2,8 @@
 FROM eclipse-temurin:17.0.11_9-jdk-jammy AS build
 WORKDIR /app
 
-# Copiar los archivos necesarios para la construcción
-COPY gradle gradle
-COPY gradlew build.gradle.kts settings.gradle.kts ./
-COPY src src
+# Copiar todo el contenido del proyecto
+COPY . .
 
 # Dar permisos de ejecución al gradlew y construir la aplicación
 RUN chmod +x ./gradlew
@@ -23,5 +21,6 @@ EXPOSE 8080
 
 # Comando para ejecutar la aplicación
 CMD ["java", "-jar", "app.jar"]
+
 
 
